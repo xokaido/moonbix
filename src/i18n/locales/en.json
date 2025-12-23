@@ -1,0 +1,14 @@
+{
+    "start": {
+        "title": "Moonbix Grabber",
+        "play": "PLAY GAME",
+        "highScore": "High Score"
+    },
+    "game": {
+        "score": "Score",
+        "time": "Time",
+        "gameOver": "GAME OVER",
+        "finalScore": "Final Score",
+        "replay": "PLAY AGAIN"
+    }
+}
