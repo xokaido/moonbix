@@ -9,5 +9,11 @@
     },
     "observability": {
         "enabled": true
-    }
+    },
+    "routes": [
+        {
+            "pattern": "moonbix.menuhub.me",
+            "custom_domain": true
+        }
+    ]
 }
