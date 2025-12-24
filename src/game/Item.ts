@@ -1,4 +1,4 @@
-export type ItemType = 'food' | 'burnt';
+export type ItemType = 'food' | 'burnt' | 'timer_enhancer' | 'timer_reducer';
 
 export class Item {
     x: number;
@@ -6,7 +6,8 @@ export class Item {
     baseY: number; // Original Y for floating animation
     radius: number = 25;
     type: ItemType;
-    value: number;
+    value: number = 0;
+    timeBonus: number = 0;
     emoji: string;
     caught: boolean = false;
 
@@ -28,10 +29,18 @@ export class Item {
             this.value = 10;
             const foods = ['🍕', '🍔', '🍟', '🌭', '🍿', '🍩', '🍪', '🍫', '🍰', '🧁', '🍦', '🍭'];
             this.emoji = foods[Math.floor(Math.random() * foods.length)];
-        } else {
+        } else if (type === 'burnt') {
             this.value = -5;
             const burnt = ['💀', '🔥', '💩', '🧨', '☠️', '👻'];
             this.emoji = burnt[Math.floor(Math.random() * burnt.length)];
+        } else if (type === 'timer_enhancer') {
+            this.timeBonus = 15;
+            this.emoji = '⏰';
+        } else if (type === 'timer_reducer') {
+            this.timeBonus = -5;
+            this.emoji = '⌛';
+        } else {
+            this.emoji = '❓';
         }
     }
 
@@ -80,13 +89,22 @@ export class Item {
     }
 
     private drawGlow(ctx: CanvasRenderingContext2D) {
-        const glowColor = this.type === 'food'
-            ? 'rgba(74, 222, 128, 0.4)' // Green for food
-            : 'rgba(248, 113, 113, 0.4)'; // Red for hazards
+        let glowColor = 'rgba(74, 222, 128, 0.4)';
+        let innerColor = 'rgba(74, 222, 128, 0.2)';
 
-        const innerColor = this.type === 'food'
-            ? 'rgba(74, 222, 128, 0.2)'
-            : 'rgba(248, 113, 113, 0.2)';
+        if (this.type === 'food') {
+            glowColor = 'rgba(74, 222, 128, 0.4)'; // Green
+            innerColor = 'rgba(74, 222, 128, 0.2)';
+        } else if (this.type === 'burnt') {
+            glowColor = 'rgba(248, 113, 113, 0.4)'; // Red
+            innerColor = 'rgba(248, 113, 113, 0.2)';
+        } else if (this.type === 'timer_enhancer') {
+            glowColor = 'rgba(250, 204, 21, 0.6)'; // Yellow/Gold
+            innerColor = 'rgba(250, 204, 21, 0.3)';
+        } else if (this.type === 'timer_reducer') {
+            glowColor = 'rgba(192, 132, 252, 0.6)'; // Purple
+            innerColor = 'rgba(192, 132, 252, 0.3)';
+        }
 
         // Outer glow
         const pulse = 1 + Math.sin(this.time * 4) * 0.2;

@@ -192,7 +192,12 @@ export class Game {
                         this.audio.playGrab();
 
                         // Emit sparkles on grab
-                        const color = item.type === 'food' ? '#4ade80' : '#f87171';
+                        let color = '#4ade80';
+                        if (item.type === 'food') color = '#4ade80';
+                        else if (item.type === 'burnt') color = '#f87171';
+                        else if (item.type === 'timer_enhancer') color = '#facc15';
+                        else if (item.type === 'timer_reducer') color = '#c084fc';
+
                         this.particles.emitSparkles(item.x, item.y, color, 8);
                         break;
                     }
@@ -201,22 +206,31 @@ export class Game {
         } else if (this.hook.state === 'swinging' && this.hook.caughtItem) {
             // Returned with item
             const val = this.hook.caughtItem.value;
+            const timeBonus = this.hook.caughtItem.timeBonus;
             const itemX = this.width / 2;
             const itemY = 80;
 
             this.score += val;
+            this.timeLeft += timeBonus;
 
-            if (val > 0) {
+            if (val > 0 || timeBonus > 0) {
                 this.audio.playScore();
-                this.particles.emitSparkles(itemX, itemY, '#4ade80', 15);
-            } else {
+                const color = timeBonus > 0 ? '#facc15' : '#4ade80';
+                this.particles.emitSparkles(itemX, itemY, color, 15);
+            } else if (val < 0 || timeBonus < 0) {
                 this.audio.playBurnt();
-                this.particles.emitSparkles(itemX, itemY, '#f87171', 10);
-                this.shakeIntensity = 5; // Screen shake on negative score
+                const color = timeBonus < 0 ? '#c084fc' : '#f87171';
+                this.particles.emitSparkles(itemX, itemY, color, 10);
+                this.shakeIntensity = 5; // Screen shake on negative score/time
             }
 
-            // Emit score popup
-            this.particles.emitScore(itemX, itemY - 30, val);
+            // Emit score or time popup
+            if (timeBonus !== 0) {
+                const sign = timeBonus > 0 ? '+' : '';
+                this.particles.emitScore(itemX, itemY - 30, `${sign}${timeBonus}s` as any);
+            } else {
+                this.particles.emitScore(itemX, itemY - 30, val);
+            }
 
             this.spawner.items = this.spawner.items.filter(i => i !== this.hook.caughtItem);
             this.hook.caughtItem = null;

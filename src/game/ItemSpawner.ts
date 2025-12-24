@@ -13,8 +13,19 @@ export class ItemSpawner {
     spawnItems(count: number = 10) {
         this.items = [];
         for (let i = 0; i < count; i++) {
-            // Random type: 70% food, 30% burnt
-            const type = Math.random() > 0.3 ? 'food' : 'burnt';
+            // Random type: 65% food, 25% burnt, 5% enhancer, 5% reducer
+            const rand = Math.random();
+            let type: any = 'food';
+
+            if (rand < 0.05) {
+                type = 'timer_enhancer';
+            } else if (rand < 0.10) {
+                type = 'timer_reducer';
+            } else if (rand < 0.35) {
+                type = 'burnt';
+            } else {
+                type = 'food';
+            }
 
             // Random position in bottom 60% of screen
             // Avoid edges
