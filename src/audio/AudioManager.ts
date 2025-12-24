@@ -2,6 +2,10 @@ export class AudioManager {
     ctx: AudioContext;
     muted: boolean = false;
 
+    // Timer warning debounce
+    lastTimerWarning: number = 0;
+    lastTimerTick: number = 0;
+
     constructor() {
         this.ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
     }
@@ -81,4 +85,90 @@ export class AudioManager {
         osc.start();
         osc.stop(this.ctx.currentTime + 1.0);
     }
+
+    // Timer warning sounds - called when time is running low
+    playTimerWarning() {
+        // Debounce - only play once per second
+        const now = Date.now();
+        if (now - this.lastTimerWarning < 1000) return;
+        this.lastTimerWarning = now;
+
+        if (this.muted) return;
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+
+        // Urgent beep - two-tone alarm
+        const osc1 = this.ctx.createOscillator();
+        const osc2 = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc1.type = 'sine';
+        osc2.type = 'sine';
+        osc1.frequency.setValueAtTime(800, this.ctx.currentTime);
+        osc2.frequency.setValueAtTime(600, this.ctx.currentTime);
+
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
+
+        osc1.start();
+        osc2.start();
+        osc1.stop(this.ctx.currentTime + 0.15);
+        osc2.stop(this.ctx.currentTime + 0.3);
+    }
+
+    playTimerTick() {
+        // Sharp tick for countdown - more distinct
+        const now = Date.now();
+        if (now - this.lastTimerTick < 900) return;
+        this.lastTimerTick = now;
+
+        if (this.muted) return;
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(1000, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(500, this.ctx.currentTime + 0.1);
+
+        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.15);
+    }
+
+    playTimerUrgent() {
+        // Very urgent - fast beeping for last 3 seconds
+        if (this.muted) return;
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+
+        // Triple beep
+        for (let i = 0; i < 3; i++) {
+            setTimeout(() => {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(1200, this.ctx.currentTime);
+
+                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.08);
+            }, i * 100);
+        }
+    }
 }
+

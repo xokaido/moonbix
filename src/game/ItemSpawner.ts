@@ -41,6 +41,12 @@ export class ItemSpawner {
         }
     }
 
+    update(dt: number) {
+        for (const item of this.items) {
+            item.update(dt);
+        }
+    }
+
     draw(ctx: CanvasRenderingContext2D) {
         this.items.forEach(item => item.draw(ctx));
     }
